@@ -76,6 +76,19 @@ export default function FeedbackForm() {
     };
 
     console.log("Formatted Feedback Data:", formattedData);
+
+    // Make API Request
+    fetch("http://localhost:3001/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(formattedData),
+    })
+      .then((res) => res.json())
+      .then((response) => {
+        console.log("Feedback Submitted Successfully:", response);
+        alert("Feedback Formatted and Submitted Successfully!");
+      })
+      .catch((error) => console.error("Error submitting feedback:", error));
   };
 
   if (!employee) return <p>Loading...</p>;
