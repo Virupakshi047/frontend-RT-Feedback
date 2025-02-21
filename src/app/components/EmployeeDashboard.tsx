@@ -15,9 +15,16 @@ interface Manager {
   name: string;
 }
 
+interface FeedbackEntry {
+  id: number;
+  feedbackMonth: string;
+  scores: { name: string; score: number; comments: string | null }[];
+}
+
 export default function EmployeeDashboard() {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [managerName, setManagerName] = useState<string | null>(null);
+  const [feedbackHistory, setFeedbackHistory] = useState<FeedbackEntry[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -36,6 +43,14 @@ export default function EmployeeDashboard() {
             .then((data: Manager) => setManagerName(data.name))
             .catch((error) =>
               console.error("Error fetching manager details:", error)
+            );
+
+          // Fetch feedback history
+          fetch(`http://localhost:3001/feedback/${parsedData.user.id}`)
+            .then((res) => res.json())
+            .then((data) => setFeedbackHistory(data.monthlyFeedbacks || []))
+            .catch((error) =>
+              console.error("Error fetching feedback history:", error)
             );
         } else {
           console.error("User data missing in response:", parsedData);
@@ -101,13 +116,56 @@ export default function EmployeeDashboard() {
           </div>
         </div>
 
-        {/* Right Panel - Empty Content Area */}
-        <div className="flex-1 bg-white shadow-md p-6 m-4 rounded-lg flex items-center justify-center">
-          <p className="text-gray-500 text-lg">
-            History of submitted feed backs
-          </p>
+        {/* Right Panel - Feedback History */}
+        <div className="flex-1 bg-white shadow-md p-6 m-4 rounded-lg overflow-y-auto">
+          <h2 className="text-xl font-semibold mb-4">Feedback History</h2>
+
+          {feedbackHistory.length > 0 ? (
+            <div className="space-y-4">
+              {feedbackHistory.map((entry) => (
+                <div key={entry.id} className="border rounded-lg p-4 shadow">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    {formatMonthYear(entry.feedbackMonth)}
+                  </h3>
+                  <ul className="text-gray-600 space-y-1">
+                    {entry.scores
+                      .filter((score) => score.name !== "Comment") // ✅ Exclude "Comment" scores
+                      .map((score, index) => (
+                        <li key={index} className="flex justify-between">
+                          <span>{score.name}:</span>
+                          <span className="font-semibold">
+                            {score.score}/10
+                          </span>
+                        </li>
+                      ))}
+                  </ul>
+                  {/* Display comment if available */}
+                  {entry.scores.some((s) => s.comments) && (
+                    <div className="mt-2 p-2 bg-gray-100 rounded">
+                      <strong>Comments:</strong>
+                      <p className="text-sm text-gray-700">
+                        {entry.scores
+                          .filter((s) => s.comments)
+                          .map((s) => s.comments)
+                          .join(", ")}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">No feedback submitted</p>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
+/* 🔥 Function: Convert "10-2024" → "October 2024" */
+const formatMonthYear = (monthYear: string) => {
+  const [month, year] = monthYear.split("-");
+  const date = new Date(Number(year), Number(month) - 1);
+  return date.toLocaleString("en-US", { month: "long", year: "numeric" });
+};
