@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import RTFeedbackModal from "./RTFeedbackModal";
 
 interface Employee {
   id: number;
@@ -25,6 +26,8 @@ export default function EmployeeDashboard() {
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [managerName, setManagerName] = useState<string | null>(null);
   const [feedbackHistory, setFeedbackHistory] = useState<FeedbackEntry[]>([]);
+  const [showRTModal, setShowRTModal] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -110,7 +113,10 @@ export default function EmployeeDashboard() {
             >
               + Submit Feedback
             </button>
-            <button className="bg-green-500 text-white px-4 py-2 rounded-md w-1/2">
+            <button
+              className="bg-green-500 text-white px-4 py-2 rounded-md w-1/2"
+              onClick={() => setShowRTModal(true)}
+            >
               + Submit RT
             </button>
           </div>
@@ -159,6 +165,16 @@ export default function EmployeeDashboard() {
           )}
         </div>
       </div>
+      {showRTModal && (
+        <RTFeedbackModal
+          empId={employee.id}
+          onClose={() => setShowRTModal(false)}
+          onSuccess={() => {
+            setShowRTModal(false);
+            alert("RT Feedback submitted successfully!");
+          }}
+        />
+      )}
     </div>
   );
 }
