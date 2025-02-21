@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import RTCycleModal from "./RTCycleModal";
 
 interface Admin {
   id: number;
@@ -17,6 +18,7 @@ interface Employee {
 }
 
 interface RT_Cycle {
+  id: number;
   cycleId: number;
   startDate: string;
   endDate: string;
@@ -28,10 +30,10 @@ export default function AdminDashboard() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [rtCycles, setRTCycles] = useState<RT_Cycle[]>([]);
   const [searchEmail, setSearchEmail] = useState("");
+  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    // Get admin data from local storage
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
       router.push("/auth");
@@ -41,13 +43,18 @@ export default function AdminDashboard() {
     const parsedUser = JSON.parse(storedUser);
     setAdmin(parsedUser);
 
-    // Fetch employees list
     fetch("http://localhost:3001/employees")
       .then((res) => res.json())
       .then((data) => setEmployees(data))
       .catch((err) => console.error("Error fetching employees:", err));
 
-
+    fetch("http://localhost:3001/admin/rt-cycles")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("RT Cycles API Response:", data); // ✅ Debugging
+        setRTCycles(data); // ✅ Ensure we use `data` (not `data.cycles`)
+      })
+      .catch((err) => console.error("Error fetching RT cycles:", err));
   }, [router]);
 
   const handleSearch = () => {
@@ -58,23 +65,33 @@ export default function AdminDashboard() {
     setEmployees(filteredEmployees);
   };
 
-  const handleCreateRTCycle = () => {
-    alert("RT Cycle Creation UI to be implemented!");
+  const handleRTCycleSuccess = () => {
+    setShowModal(false);
+    fetch("http://localhost:3001/admin/rt-cycles")
+      .then((res) => res.json())
+      .then((data) => setRTCycles(data))
+      .catch((err) => console.error("Error fetching RT cycles:", err));
+
+    console.log(rtCycles);
   };
 
   if (!admin) return <p>Loading...</p>;
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
-      {/* Navbar */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50"></div>
+      )}{" "}
+      {/* ✅ Blur only background */}
       <nav className="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
         <h1 className="text-lg font-semibold">{admin.name}</h1>
-        <img src="/profile-placeholder.png" alt="Profile" className="w-10 h-10 rounded-full border-2 border-white" />
+        <img
+          src="/profile-placeholder.png"
+          alt="Profile"
+          className="w-10 h-10 rounded-full border-2 border-white"
+        />
       </nav>
-
-      {/* Main Content */}
       <div className="p-6">
-        {/* Search & Create RT Cycle */}
         <div className="flex justify-between mb-6">
           <input
             type="text"
@@ -90,24 +107,27 @@ export default function AdminDashboard() {
             Search
           </button>
           <button
-            onClick={handleCreateRTCycle}
+            onClick={() => setShowModal(true)}
             className="bg-green-500 text-white px-4 py-2 rounded-md"
           >
             + Create New RT Cycle
           </button>
         </div>
 
-        {/* Admin Dashboard Sections */}
         <div className="flex gap-6">
-          {/* RT Cycles Section */}
           <div className="w-1/2 bg-white shadow-md p-6 rounded-lg">
             <h2 className="text-xl font-semibold mb-4">Previous RT Cycles</h2>
-            {rtCycles.length > 0 ? (
+            {rtCycles?.length > 0 ? (
               <ul className="space-y-2">
                 {rtCycles.map((cycle) => (
-                  <li key={cycle.cycleId} className="p-2 border rounded-md">
-                    <p><strong>Start-End:</strong> {cycle.startDate} - {cycle.endDate}</p>
-                    <p><strong>Status:</strong> {cycle.status}</p>
+                  <li key={cycle.id} className="p-2 border rounded-md">
+                    <p>
+                      <strong>Start-End:</strong> {cycle.startDate} -{" "}
+                      {cycle.endDate}
+                    </p>
+                    <p>
+                      <strong>Status:</strong> {cycle.status}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -116,16 +136,21 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          {/* Employees List Section */}
           <div className="w-1/2 bg-white shadow-md p-6 rounded-lg">
             <h2 className="text-xl font-semibold mb-4">List of Employees</h2>
             {employees.length > 0 ? (
               <ul className="space-y-2">
                 {employees.map((emp) => (
                   <li key={emp.id} className="p-2 border rounded-md">
-                    <p><strong>Name:</strong> {emp.name}</p>
-                    <p><strong>Email:</strong> {emp.email}</p>
-                    <p><strong>Role:</strong> {emp.bandLevel}</p>
+                    <p>
+                      <strong>Name:</strong> {emp.name}
+                    </p>
+                    <p>
+                      <strong>Email:</strong> {emp.email}
+                    </p>
+                    <p>
+                      <strong>Role:</strong> {emp.bandLevel}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -135,6 +160,12 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+      {showModal && (
+        <RTCycleModal
+          onClose={() => setShowModal(false)}
+          onSuccess={handleRTCycleSuccess}
+        />
+      )}
     </div>
   );
 }
