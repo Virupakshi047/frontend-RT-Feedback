@@ -75,6 +75,11 @@ export default function AdminDashboard() {
     console.log(rtCycles);
   };
 
+  const formatMonthYear = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleString("en-US", { month: "long", year: "numeric" }); // ✅ Converts "2024-06-01" → "June 2024"
+  };
+
   if (!admin) return <p>Loading...</p>;
 
   return (
@@ -120,14 +125,23 @@ export default function AdminDashboard() {
             {rtCycles?.length > 0 ? (
               <ul className="space-y-2">
                 {rtCycles.map((cycle) => (
-                  <li key={cycle.id} className="p-2 border rounded-md">
-                    <p>
-                      <strong>Start-End:</strong> {cycle.startDate} -{" "}
-                      {cycle.endDate}
-                    </p>
-                    <p>
-                      <strong>Status:</strong> {cycle.status}
-                    </p>
+                  <li
+                    key={cycle.id}
+                    className="p-2 border rounded-md flex justify-between items-center"
+                  >
+                    <div>
+                      <p className="flex items-center gap-2">
+                        {cycle.status === "ACTIVE" && (
+                          <span className="w-3 h-3 bg-green-500 rounded-full inline-block"></span>
+                        )}
+                        <strong>Start-End:</strong>{" "}
+                        {formatMonthYear(cycle.startDate)} ➝{" "}
+                        {formatMonthYear(cycle.endDate)}
+                      </p>
+                      <p>
+                        <strong>Status:</strong> {cycle.status}
+                      </p>
+                    </div>
                   </li>
                 ))}
               </ul>
