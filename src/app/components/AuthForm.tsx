@@ -23,9 +23,12 @@ export default function AuthForm() {
 
       console.log(isLogin ? "Login Success:" : "Signup Success:", result);
 
-      // Redirect after login
+      // Store user data in localStorage
+      localStorage.setItem("user", JSON.stringify(result));
+
+      // Redirect based on role
       if (data.role === "admin") router.push("/admin-dashboard");
-      else router.push("/employee-dashboard");
+      else router.push("/employee-dashboard"); // Employee Dashboard
     } catch (error: any) {
       alert(error.message);
     }
