@@ -33,6 +33,7 @@ export default function AdminDashboard() {
   const [showModal, setShowModal] = useState(false);
   const router = useRouter();
 
+  
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (!storedUser) {
@@ -43,7 +44,7 @@ export default function AdminDashboard() {
     const parsedUser = JSON.parse(storedUser);
     setAdmin(parsedUser);
 
-    fetch("http://localhost:3001/employees")
+     fetch("http://localhost:3001/employees")
       .then((res) => res.json())
       .then((data) => setEmployees(data))
       .catch((err) => console.error("Error fetching employees:", err));
@@ -59,6 +60,9 @@ export default function AdminDashboard() {
 
   const handleSearch = () => {
     if (!searchEmail) return;
+    if(searchEmail==""){
+      setEmployees(dat)
+    }
     const filteredEmployees = employees.filter((emp) =>
       emp.email.toLowerCase().includes(searchEmail.toLowerCase())
     );
