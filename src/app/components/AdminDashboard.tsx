@@ -52,17 +52,15 @@ export default function AdminDashboard() {
     fetch("http://localhost:3001/admin/rt-cycles")
       .then((res) => res.json())
       .then((data) => {
-        console.log("RT Cycles API Response:", data); // ✅ Debugging
-        setRTCycles(data); // ✅ Ensure we use `data` (not `data.cycles`)
+        console.log("RT Cycles API Response:", data); // debug
+        setRTCycles(data); 
       })
       .catch((err) => console.error("Error fetching RT cycles:", err));
   }, [router]);
 
   const handleSearch = () => {
     if (!searchEmail) return;
-    if(searchEmail==""){
-      setEmployees(dat)
-    }
+    
     const filteredEmployees = employees.filter((emp) =>
       emp.email.toLowerCase().includes(searchEmail.toLowerCase())
     );
